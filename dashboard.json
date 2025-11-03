@@ -1,0 +1,240 @@
+{
+  "name": "HostPing Dashboard",
+  "description": null,
+  "permissions": "PUBLIC_READ_WRITE",
+  "pages": [
+    {
+      "guid": "NDI1NjE2MHxWSVp8REFTSEJPQVJEfDQ0ODYzOTg5",
+      "name": "HostPing Dashboard",
+      "description": null,
+      "widgets": [
+        {
+          "id": "498735610",
+          "title": null,
+          "layout": { "column": 1, "row": 1, "width": 12, "height": 1 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.markdown" },
+          "rawConfiguration": { "text": "# Command Center" }
+        },
+        {
+          "id": "498725593",
+          "title": "Server Health",
+          "layout": { "column": 1, "row": 2, "width": 12, "height": 3 },
+          "linkedEntityGuids": [],
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountIds": [9999999],
+                "query": "FROM HostPing SELECT latest(severity) AS 'Severity', latest(status) AS 'Status', latest(lossPct) AS 'Loss (%)', latest(rttP95Ms) AS 'p95 RTT (ms)', if(latest(rttP95Ms) >= 250 OR latest(lossPct) >= 30, '🔴', if(latest(rttP95Ms) >= 120 OR latest(lossPct) >= 10, '🟡', '🟢')) AS 'Health', if(latest(status) = 'Up', if(filter(count(*), WHERE status != 'Up') > 0, floor((max(timestamp) - filter(max(timestamp), WHERE status != 'Up')) / 60000), floor((max(timestamp) - min(timestamp)) / 60000)), 0) AS 'Up for (min)', if(latest(status) != 'Up', if(filter(count(*), WHERE status = 'Up') > 0, floor((max(timestamp) - filter(max(timestamp), WHERE status = 'Up')) / 60000), floor((max(timestamp) - min(timestamp)) / 60000)), 0) AS 'Non-Up for (min)', latest(lastError) AS 'Last Error' SINCE 30 days ago FACET host LIMIT MAX"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false },
+            "thresholds": [
+              { "columnName": "Loss (%)", "from": 0, "severity": "success", "to": 10 },
+              { "columnName": "Loss (%)", "from": 10, "severity": "critical", "to": 100 }
+            ]
+          }
+        },
+        {
+          "id": "498733204",
+          "title": "Top Issues",
+          "layout": { "column": 1, "row": 5, "width": 12, "height": 3 },
+          "linkedEntityGuids": [],
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountIds": [9999999],
+                "query": "FROM HostPing SELECT latest(lossPct) AS 'Loss (%)', latest(rttP95Ms) AS 'p95 RTT (ms)', latest(status) AS 'Status', latest(severity) AS 'Severity', latest(lastError) AS 'Last Error' SINCE 24 hours ago FACET host LIMIT 20"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false },
+            "thresholds": [
+              { "columnName": "Loss (%)", "from": 0, "severity": "success", "to": 80 },
+              { "columnName": "Loss (%)", "from": 80, "severity": "warning", "to": 95 },
+              { "columnName": "Loss (%)", "from": 95, "severity": "critical", "to": 100 }
+            ]
+          }
+        },
+        {
+          "id": "498735711",
+          "title": null,
+          "layout": { "column": 1, "row": 8, "width": 12, "height": 1 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.markdown" },
+          "rawConfiguration": { "text": "# Trends & Availability" }
+        },
+        {
+          "id": "498733292",
+          "title": "Availability (7d)",
+          "layout": { "column": 1, "row": 9, "width": 4, "height": 3 },
+          "linkedEntityGuids": [],
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountIds": [9999999],
+                "query": "FROM HostPing SELECT filter(count(*), WHERE status = 'Up') / count(*) * 100 AS 'Availability (%)' SINCE 7 days ago FACET host LIMIT MAX"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false },
+            "thresholds": [
+              { "columnName": "Availability (%)", "from": 95, "severity": "success", "to": 100 },
+              { "columnName": "Availability (%)", "from": 80, "severity": "warning", "to": 95 },
+              { "columnName": "Availability (%)", "from": 0, "severity": "critical", "to": 80 }
+            ]
+          }
+        },
+        {
+          "id": "498733234",
+          "title": "Avg Loss & p95 (24h)",
+          "layout": { "column": 5, "row": 9, "width": 4, "height": 3 },
+          "linkedEntityGuids": [],
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "legend": { "enabled": true },
+            "markers": {
+              "displayedTypes": {
+                "criticalViolations": false,
+                "deployments": true,
+                "relatedDeployments": true,
+                "warningViolations": false
+              }
+            },
+            "nrqlQueries": [
+              {
+                "accountIds": [9999999],
+                "query": "FROM HostPing SELECT average(lossPct) AS 'Avg Loss (%)', percentile(rttP95Ms, 95) AS 'p95 RTT (ms)' SINCE 24 hours ago TIMESERIES 15 minutes FACET host LIMIT 50"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false },
+            "thresholds": { "isLabelVisible": true },
+            "yAxisLeft": { "zero": true },
+            "yAxisRight": { "zero": true }
+          }
+        },
+        {
+          "id": "498733231",
+          "title": "RTT Bar View (p95 ms)",
+          "layout": { "column": 9, "row": 9, "width": 4, "height": 3 },
+          "linkedEntityGuids": [],
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountIds": [9999999],
+                "query": "FROM HostPing SELECT latest(rttP95Ms) AS 'p95 RTT (ms)' SINCE 24 hours ago FACET host LIMIT MAX"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "id": "498735712",
+          "title": null,
+          "layout": { "column": 1, "row": 12, "width": 12, "height": 1 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.markdown" },
+          "rawConfiguration": { "text": "# Context & Ownership" }
+        },
+        {
+          "id": "498733377",
+          "title": "Location View",
+          "layout": { "column": 1, "row": 13, "width": 5, "height": 3 },
+          "linkedEntityGuids": [],
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountIds": [9999999],
+                "query": "FROM HostPing SELECT latest(severity) AS 'Severity', latest(lossPct) AS 'Loss (%)', latest(rttP95Ms) AS 'p95 RTT (ms)' SINCE 24 hours ago FACET location, host"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "id": "498733646",
+          "title": "Group Breakdown",
+          "layout": { "column": 6, "row": 13, "width": 4, "height": 3 },
+          "linkedEntityGuids": [],
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountIds": [9999999],
+                "query": "FROM HostPing SELECT percentage(count(*), WHERE severity = 'CRIT') AS 'CRIT (%)', percentage(count(*), WHERE severity = 'WARN') AS 'WARN (%)', percentage(count(*), WHERE severity = 'OK') AS 'OK (%)' SINCE 24 hours ago FACET tag_group AS 'Group'"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "id": "498733678",
+          "title": "RTT Distribution",
+          "layout": { "column": 10, "row": 13, "width": 3, "height": 3 },
+          "linkedEntityGuids": [],
+          "visualization": { "id": "viz.histogram" },
+          "rawConfiguration": {
+            "legend": { "enabled": true },
+            "nrqlQueries": [
+              {
+                "accountIds": [9999999],
+                "query": "FROM HostPing SELECT histogram(rttP95Ms, 10, 0, 1000) AS 'p95 RTT (ms)' SINCE 24 hours ago"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false },
+            "yAxisLeft": { "zero": true }
+          }
+        },
+        {
+          "id": "498733675",
+          "title": "Error Feed",
+          "layout": { "column": 1, "row": 16, "width": 5, "height": 3 },
+          "linkedEntityGuids": [],
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountIds": [9999999],
+                "query": "FROM HostPing SELECT latest(timestampMs) AS 'Timestamp', latest(status) AS 'Status', latest(lastError) AS 'Error' WHERE lastError IS NOT NULL SINCE 24 hours ago FACET host LIMIT 50"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "id": "498733579",
+          "title": "Host Breakdown",
+          "layout": { "column": 6, "row": 16, "width": 7, "height": 3 },
+          "linkedEntityGuids": [],
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountIds": [9999999],
+                "query": "FROM HostPing SELECT latest(ip) AS 'IP Address', latest(severity) AS 'Severity', latest(lossPct) AS 'Loss (%)', latest(rttP95Ms) AS 'p95 RTT (ms)' SINCE 24 hours ago FACET tag_env, host LIMIT MAX"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false },
+            "thresholds": [
+              { "columnName": "Loss (%)", "from": 0, "severity": "success", "to": 10 },
+              { "columnName": "Loss (%)", "from": 10, "severity": "critical", "to": 100 }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variables": []
+}
